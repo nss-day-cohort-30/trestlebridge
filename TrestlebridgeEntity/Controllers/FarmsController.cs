@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +15,51 @@ namespace TrestlebridgeEntity.Controllers
     public class FarmsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public FarmsController(ApplicationDbContext context)
+        private Task<ApplicationUser> GetCurrentUserAsync() => 
+            _userManager.GetUserAsync(HttpContext.User);
+
+
+
+        public FarmsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Farms
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Farms.ToListAsync());
+            var user = await GetCurrentUserAsync();
+
+            //var facilitiesFromSQL = _context.Facilities.FromSql(@"
+            //    select f.RegisteredName, count(f.Id) NumberOfFaciities
+            //    from Farms f
+            //    join Facilities fc on fc.FarmId = f.Id
+            //    group by f.RegisteredName
+            //").ToList();
+
+            var facilityCount = (from facility in _context.Facilities
+                    group facility by new {
+                        facility.FarmId,
+                        facility.Farm.RegisteredName,
+                        facility.Farm.Acres,
+                        facility.Farm.User
+                    }
+                    into farmGroup
+                    where farmGroup.Key.User == user
+                    select new GroupedFarm
+                    {
+                        FarmId = farmGroup.Key.FarmId,
+                        RegisteredName = farmGroup.Key.RegisteredName,
+                        Acres = farmGroup.Key.Acres,
+                        Count = farmGroup.Count()
+                    }).ToList();
+
+
+            return View(facilityCount);
         }
 
         // GET: Farms/Details/5
@@ -58,6 +95,8 @@ namespace TrestlebridgeEntity.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await GetCurrentUserAsync();
+                farm.User = user;
                 _context.Add(farm);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

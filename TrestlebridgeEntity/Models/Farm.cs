@@ -20,6 +20,8 @@ namespace TrestlebridgeEntity.Models
         [NotMapped]
         public double Price { get; set; }
 
+        public virtual ICollection<Facility> Facilities { get; set; }
+
         public ApplicationUser User { get; set; }
     }
 }

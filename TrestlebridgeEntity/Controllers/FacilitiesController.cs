@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +15,29 @@ namespace TrestlebridgeEntity.Controllers
     public class FacilitiesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public FacilitiesController(ApplicationDbContext context)
+        private Task<ApplicationUser> GetCurrentUserAsync() =>
+            _userManager.GetUserAsync(HttpContext.User);
+
+        public FacilitiesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
+
         }
 
         // GET: Facilities
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Facilities.Include(f => f.Type);
+            var user = await GetCurrentUserAsync();
+
+            var applicationDbContext = _context
+                .Facilities
+                .Include(f => f.Type)
+                .Include(f => f.Farm)
+                .Where(f => f.Farm.User == user)
+                ;
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -46,9 +61,14 @@ namespace TrestlebridgeEntity.Controllers
         }
 
         // GET: Facilities/Create
-        public IActionResult Create()
+        [Authorize]
+        public async Task<IActionResult> Create()
         {
+            var user = await GetCurrentUserAsync();
             ViewData["FacilityTypeId"] = new SelectList(_context.FacilityTypes, "Id", "Type");
+            ViewData["FarmId"] = new SelectList(
+                _context.Farms.Where(f => f.User == user), "Id", "RegisteredName"
+            );
             return View();
         }
 
@@ -57,7 +77,7 @@ namespace TrestlebridgeEntity.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FacilityTypeId,Capacity")] Facility facility)
+        public async Task<IActionResult> Create([Bind("Id,FacilityTypeId,FarmId,Capacity")] Facility facility)
         {
             if (ModelState.IsValid)
             {
