@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TrestlebridgeEntity.Data;
 using TrestlebridgeEntity.Models;
+using TrestlebridgeEntity.Models.ViewModels;
 
 namespace TrestlebridgeEntity.Controllers
 {
@@ -34,32 +35,14 @@ namespace TrestlebridgeEntity.Controllers
         {
             var user = await GetCurrentUserAsync();
 
-            //var facilitiesFromSQL = _context.Facilities.FromSql(@"
-            //    select f.RegisteredName, count(f.Id) NumberOfFaciities
-            //    from Farms f
-            //    join Facilities fc on fc.FarmId = f.Id
-            //    group by f.RegisteredName
-            //").ToList();
+            var farms = _context.Farms
+                .Include("Facilities")
+                .Include("Facilities.Type")
+                .Include("Facilities.Animals")
+                .Where(f => f.User == user)
+                ;
 
-            var facilityCount = (from facility in _context.Facilities
-                    group facility by new {
-                        facility.FarmId,
-                        facility.Farm.RegisteredName,
-                        facility.Farm.Acres,
-                        facility.Farm.User
-                    }
-                    into farmGroup
-                    where farmGroup.Key.User == user
-                    select new GroupedFarm
-                    {
-                        FarmId = farmGroup.Key.FarmId,
-                        RegisteredName = farmGroup.Key.RegisteredName,
-                        Acres = farmGroup.Key.Acres,
-                        Count = farmGroup.Count()
-                    }).ToList();
-
-
-            return View(facilityCount);
+            return View(farms);
         }
 
         // GET: Farms/Details/5
@@ -70,8 +53,12 @@ namespace TrestlebridgeEntity.Controllers
                 return NotFound();
             }
 
-            var farm = await _context.Farms
+            var farm = await _context
+                .Farms
+                .Include(f => f.Facilities).ThenInclude(f => f.Type)
+                .Include(f => f.Facilities).ThenInclude(f => f.Animals)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (farm == null)
             {
                 return NotFound();

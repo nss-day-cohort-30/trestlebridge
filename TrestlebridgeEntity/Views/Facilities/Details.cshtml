@@ -1,26 +1,30 @@
 ﻿@model TrestlebridgeEntity.Models.Facility
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = $"Facility {Model.Id} Details";
 }
 
-<h1>Details</h1>
+<h1>@ViewData["Title"]</h1>
 
 <div>
-    <h4>Facility</h4>
-    <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Type)
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type.Id)
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Type.Type)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Capacity)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Capacity)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Farm)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Farm.RegisteredName)
         </dd>
     </dl>
 </div>

@@ -13,12 +13,10 @@ namespace TrestlebridgeEntity.Models
         public int Id { get; set; }
 
         [Required]
+        [Display(Name = "Name")]
         public string RegisteredName { get; set; }
 
         public double Acres { get; set; }
-
-        [NotMapped]
-        public double Price { get; set; }
 
         public virtual ICollection<Facility> Facilities { get; set; }
 

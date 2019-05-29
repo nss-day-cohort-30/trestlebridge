@@ -1,29 +1,43 @@
 ﻿@model TrestlebridgeEntity.Models.Farm
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = $"{@Model.RegisteredName} Details";
 }
 
-<h1>Details</h1>
+<h1>@ViewData["Title"]</h1>
 
 <div>
     <h4>Farm</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.RegisteredName)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.RegisteredName)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Acres)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Acres)
         </dd>
     </dl>
 </div>
+
+<div class="facility header">
+    <div class="facility__type">Facility Type</div>
+    <div class="facility__animalCount">Animals</div>
+</div>
+
+@foreach (var facility in Model.Facilities)
+{
+    <div class="facility">
+        <div class="facility__type">@Html.DisplayFor(modelItem => facility.Type.Type)</div>
+        <div class="facility__animalCount">@Html.DisplayFor(modelItem => facility.Animals.Count)</div>
+    </div>
+}
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>

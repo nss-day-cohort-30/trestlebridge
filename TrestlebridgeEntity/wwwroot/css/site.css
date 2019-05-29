@@ -54,3 +54,27 @@ body {
   height: 60px;
   line-height: 60px; /* Vertically center the text there */
 }
+
+
+
+
+
+
+.header {
+    font-weight: bolder;
+    line-height: 3em;
+}
+
+.facility{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.facility__type {
+    flex-basis: 60%;
+}
+
+.facility__animalCount {
+    flex-basis: 20%;
+}
